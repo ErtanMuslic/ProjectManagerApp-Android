@@ -6,7 +6,7 @@ plugins {
 android {
     namespace = "com.ertan.projecrmanagerapp"
     compileSdk {
-        version = release(36) {
+        version = release(37) {
             minorApiLevel = 1
         }
     }
@@ -41,7 +41,7 @@ android {
 
 dependencies {
 
-    // Retrofit - za pozive ka tvom C# backendu
+    // Retrofit - for backend calls
     implementation("com.squareup.retrofit2:retrofit:2.11.0")
     implementation("com.squareup.retrofit2:converter-gson:2.11.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
@@ -52,10 +52,10 @@ dependencies {
     // ViewModel za Compose
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.4")
 
-    // DataStore - za čuvanje JWT tokena lokalno
+    // DataStore - for storing JWT tokens locally
     implementation("androidx.datastore:datastore-preferences:1.1.1")
 
-    // Google Sign-In (Credential Manager - moderni pristup)
+    // Google Sign-In (Credential Manager)
     implementation("androidx.credentials:credentials:1.3.0")
     implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
     implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
