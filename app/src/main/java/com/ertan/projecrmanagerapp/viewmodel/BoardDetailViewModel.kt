@@ -42,7 +42,20 @@ class BoardDetailViewModel(application: Application) : AndroidViewModel(applicat
         }
     }
 
-    fun createColumn(name: String, order: Int, parentColumnId: Int?, onComplete: (Boolean) -> Unit) {
+    fun createColumn(name: String, parentColumnId: Int?, onComplete: (Boolean) -> Unit) {
+        val currentState = _state.value
+        if (currentState !is BoardDetailState.Success) {
+            onComplete(false)
+            return
+        }
+
+        val order = if (parentColumnId == null) {
+            currentState.board.columns.size
+        } else {
+            val parent = currentState.board.columns.find { it.id == parentColumnId }
+            parent?.subColumns?.size ?: 0
+        }
+
         viewModelScope.launch {
             try {
                 val response = RetrofitInstance.api.createColumn(

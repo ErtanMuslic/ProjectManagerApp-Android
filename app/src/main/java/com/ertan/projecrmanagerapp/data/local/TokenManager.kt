@@ -15,13 +15,15 @@ class TokenManager(private val context: Context) {
         val TOKEN_KEY = stringPreferencesKey("jwt_token")
         val ROLE_KEY = stringPreferencesKey("user_role")
         val NAME_KEY = stringPreferencesKey("user_name")
+        val USER_ID_KEY = stringPreferencesKey("user_id")
     }
 
-    suspend fun saveAuthData(token: String, role: String, name: String) {
+    suspend fun saveAuthData(token: String, role: String, name: String, userId: Int) {
         context.dataStore.edit { prefs ->
             prefs[TOKEN_KEY] = token
             prefs[ROLE_KEY] = role
             prefs[NAME_KEY] = name
+            prefs[USER_ID_KEY] = userId.toString()
         }
     }
 
@@ -33,6 +35,9 @@ class TokenManager(private val context: Context) {
 
     fun getName(): Flow<String?> =
         context.dataStore.data.map { it[NAME_KEY]}
+
+    fun getUserId(): Flow<Int?> =
+        context.dataStore.data.map { it[USER_ID_KEY]?.toIntOrNull() }
 
     suspend fun clear() {
         context.dataStore.edit { it.clear() }

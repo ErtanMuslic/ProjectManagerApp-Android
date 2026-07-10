@@ -21,6 +21,7 @@ import kotlinx.coroutines.launch
 fun LoginScreen(
     onLoginSuccess: () -> Unit,
     onNavigateToRegister: () -> Unit,
+    onGuestContinue: () -> Unit,
     viewModel: AuthViewModel = viewModel()
 ) {
     var email by remember { mutableStateOf("") }
@@ -82,6 +83,10 @@ fun LoginScreen(
         }
 
         Spacer(modifier = Modifier.height(12.dp))
+
+        TextButton(onClick = onGuestContinue) {
+            Text("Continue as Guest")
+        }
 
         Text(text = "— OR —", style = MaterialTheme.typography.bodySmall)
         Spacer(modifier = Modifier.height(12.dp))

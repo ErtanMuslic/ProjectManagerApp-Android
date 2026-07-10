@@ -28,6 +28,7 @@ fun BoardListScreen(
     val context = LocalContext.current
     val tokenManager = remember { TokenManager(context) }
     val scope = rememberCoroutineScope()
+    val token by tokenManager.getToken().collectAsState(initial = null)
 
     val role by tokenManager.getRole().collectAsState(initial = null)
     val boardListState by viewModel.boardListState.collectAsState()
@@ -37,15 +38,22 @@ fun BoardListScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("My Boards") },
-                actions = {
-                    IconButton(onClick = {
-                        scope.launch {
-                            tokenManager.clear()
-                            onLogout()
+
+                    title = { Text("My Boards") },
+                    actions = {
+                        if(token != null) {
+                        IconButton(onClick = {
+                            scope.launch {
+                                tokenManager.clear()
+                                onLogout()
+                            }
+                        }) {
+                            Icon(Icons.Default.ExitToApp, contentDescription = "Logout")
                         }
-                    }) {
-                        Icon(Icons.Default.ExitToApp, contentDescription = "Logout")
+                    } else {
+                        TextButton(onClick = onLogout) {
+                            Text("Login")
+                        }
                     }
                 }
             )

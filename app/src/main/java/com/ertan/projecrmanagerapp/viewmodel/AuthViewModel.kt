@@ -33,7 +33,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                 val response = RetrofitInstance.api.login(LoginRequest(email, password))
                 if (response.isSuccessful && response.body() != null) {
                     val body = response.body()!!
-                    tokenManager.saveAuthData(body.token, body.role, body.name)
+                    tokenManager.saveAuthData(body.token, body.role, body.name, body.userId)
                     _authState.value = AuthState.Success
                 } else {
                     _authState.value = AuthState.Error("Wrong email or password.")
@@ -51,7 +51,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                 val response = RetrofitInstance.api.register(RegisterRequest(name, email, password))
                 if (response.isSuccessful && response.body() != null) {
                     val body = response.body()!!
-                    tokenManager.saveAuthData(body.token, body.role, body.name)
+                    tokenManager.saveAuthData(body.token, body.role, body.name, body.userId)
                     _authState.value = AuthState.Success
                 } else {
                     val errorMsg = response.errorBody()?.string() ?: "Registration unsuccessfull."
@@ -70,7 +70,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                 val response = RetrofitInstance.api.googleLogin(GoogleLoginRequest(idToken))
                 if (response.isSuccessful && response.body() != null) {
                     val body = response.body()!!
-                    tokenManager.saveAuthData(body.token, body.role, body.name)
+                    tokenManager.saveAuthData(body.token, body.role, body.name, body.userId)
                     _authState.value = AuthState.Success
                 } else {
                     _authState.value = AuthState.Error("Google login failed.")

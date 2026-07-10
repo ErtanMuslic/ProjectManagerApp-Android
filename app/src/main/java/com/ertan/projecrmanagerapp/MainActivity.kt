@@ -12,6 +12,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.ertan.projecrmanagerapp.ui.screens.BoardDetailScreen
 import com.ertan.projecrmanagerapp.ui.screens.BoardListScreen
+import com.ertan.projecrmanagerapp.ui.screens.CardDetailScreen
 import com.ertan.projecrmanagerapp.ui.screens.LoginScreen
 import com.ertan.projecrmanagerapp.ui.screens.RegisterScreen
 
@@ -40,7 +41,12 @@ fun AppNavigation() {
                         popUpTo("login") { inclusive = true }
                     }
                 },
-                onNavigateToRegister = { navController.navigate("register") }
+                onNavigateToRegister = { navController.navigate("register") },
+                onGuestContinue = {
+                    navController.navigate("home") {
+                        popUpTo("login") {inclusive = true }
+                    }
+                }
             )
         }
         composable("register") {
@@ -69,6 +75,18 @@ fun AppNavigation() {
             val boardId = backStackEntry.arguments?.getString("boardId")?.toIntOrNull() ?: 0
             BoardDetailScreen(
                 boardId = boardId,
+                onBack = { navController.popBackStack() },
+                onCardClick = { cardId ->
+                    navController.navigate("board/$boardId/card/$cardId")
+                }
+            )
+        }
+        composable("board/{boardId}/card/{cardId}") { backStackEntry ->
+            val boardId = backStackEntry.arguments?.getString("boardId")?.toIntOrNull() ?: 0
+            val cardId = backStackEntry.arguments?.getString("cardId")?.toIntOrNull() ?: 0
+            CardDetailScreen(
+                boardId = boardId,
+                cardId = cardId,
                 onBack = { navController.popBackStack() }
             )
         }
