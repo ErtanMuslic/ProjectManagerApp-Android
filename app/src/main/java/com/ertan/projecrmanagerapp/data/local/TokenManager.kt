@@ -31,6 +31,9 @@ class TokenManager(private val context: Context) {
     fun getRole(): Flow<String?> =
         context.dataStore.data.map { it[ROLE_KEY] }
 
+    fun getName(): Flow<String?> =
+        context.dataStore.data.map { it[NAME_KEY]}
+
     suspend fun clear() {
         context.dataStore.edit { it.clear() }
     }

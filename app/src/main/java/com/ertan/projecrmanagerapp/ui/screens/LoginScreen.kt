@@ -77,7 +77,7 @@ fun LoginScreen(
             if (authState is AuthState.Loading) {
                 CircularProgressIndicator(modifier = Modifier.size(20.dp))
             } else {
-                Text("Register")
+                Text("Log in")
             }
         }
 

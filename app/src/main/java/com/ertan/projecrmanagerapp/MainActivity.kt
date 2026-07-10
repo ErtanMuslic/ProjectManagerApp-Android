@@ -10,6 +10,8 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.ertan.projecrmanagerapp.ui.screens.BoardDetailScreen
+import com.ertan.projecrmanagerapp.ui.screens.BoardListScreen
 import com.ertan.projecrmanagerapp.ui.screens.LoginScreen
 import com.ertan.projecrmanagerapp.ui.screens.RegisterScreen
 
@@ -52,8 +54,23 @@ fun AppNavigation() {
             )
         }
         composable("home") {
-
-            androidx.compose.material3.Text("Uspešno ulogovan! (Home ekran dolazi sledeći)")
+            BoardListScreen(
+                onBoardClick = { boardId ->
+                    navController.navigate("board/$boardId")
+                },
+                onLogout = {
+                    navController.navigate("login") {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
+            )
+        }
+        composable("board/{boardId}") { backStackEntry ->
+            val boardId = backStackEntry.arguments?.getString("boardId")?.toIntOrNull() ?: 0
+            BoardDetailScreen(
+                boardId = boardId,
+                onBack = { navController.popBackStack() }
+            )
         }
     }
 }

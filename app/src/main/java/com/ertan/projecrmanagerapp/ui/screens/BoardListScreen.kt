@@ -1,0 +1,137 @@
+package com.ertan.projecrmanagerapp.ui.screens
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.ertan.projecrmanagerapp.data.local.TokenManager
+import com.ertan.projecrmanagerapp.viewmodel.BoardListState
+import com.ertan.projecrmanagerapp.viewmodel.BoardViewModel
+import kotlinx.coroutines.launch
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun BoardListScreen(
+    onBoardClick: (Int) -> Unit,
+    onLogout: () -> Unit,
+    viewModel: BoardViewModel = viewModel()
+) {
+    val context = LocalContext.current
+    val tokenManager = remember { TokenManager(context) }
+    val scope = rememberCoroutineScope()
+
+    val role by tokenManager.getRole().collectAsState(initial = null)
+    val boardListState by viewModel.boardListState.collectAsState()
+
+    var showCreateDialog by remember { mutableStateOf(false) }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("My Boards") },
+                actions = {
+                    IconButton(onClick = {
+                        scope.launch {
+                            tokenManager.clear()
+                            onLogout()
+                        }
+                    }) {
+                        Icon(Icons.Default.ExitToApp, contentDescription = "Logout")
+                    }
+                }
+            )
+        },
+        floatingActionButton = {
+            if (role == "Admin") {
+                FloatingActionButton(onClick = { showCreateDialog = true }) {
+                    Icon(Icons.Default.Add, contentDescription = "Create board")
+                }
+            }
+        }
+    ) { padding ->
+        Box(modifier = Modifier.padding(padding).fillMaxSize()) {
+            when (val state = boardListState) {
+                is BoardListState.Loading -> {
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                }
+                is BoardListState.Error -> {
+                    Text(
+                        text = state.message,
+                        modifier = Modifier.align(Alignment.Center),
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+                is BoardListState.Success -> {
+                    if (state.boards.isEmpty()) {
+                        Text(
+                            text = "No boards yet.",
+                            modifier = Modifier.align(Alignment.Center)
+                        )
+                    } else {
+                        LazyColumn(modifier = Modifier.fillMaxSize()) {
+                            items(state.boards) { board ->
+                                Card(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                                    onClick = { onBoardClick(board.id) }
+                                ) {
+                                    Column(modifier = Modifier.padding(16.dp)) {
+                                        Text(text = board.name, style = MaterialTheme.typography.titleMedium)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (showCreateDialog) {
+            CreateBoardDialog(
+                onDismiss = { showCreateDialog = false },
+                onCreate = { name ->
+                    viewModel.createBoard(name) { success ->
+                        showCreateDialog = false
+                    }
+                }
+            )
+        }
+    }
+}
+
+@Composable
+fun CreateBoardDialog(onDismiss: () -> Unit, onCreate: (String) -> Unit) {
+    var name by remember { mutableStateOf("") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Create new board") },
+        text = {
+            OutlinedTextField(
+                value = name,
+                onValueChange = { name = it },
+                label = { Text("Board name") }
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = { if (name.isNotBlank()) onCreate(name) }) {
+                Text("Create")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
+}
