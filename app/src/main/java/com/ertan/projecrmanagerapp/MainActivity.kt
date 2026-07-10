@@ -15,6 +15,7 @@ import com.ertan.projecrmanagerapp.ui.screens.BoardListScreen
 import com.ertan.projecrmanagerapp.ui.screens.CardDetailScreen
 import com.ertan.projecrmanagerapp.ui.screens.LoginScreen
 import com.ertan.projecrmanagerapp.ui.screens.RegisterScreen
+import com.ertan.projecrmanagerapp.ui.screens.UserManagementScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -68,7 +69,15 @@ fun AppNavigation() {
                     navController.navigate("login") {
                         popUpTo(0) { inclusive = true }
                     }
+                },
+                onManageUsers = {
+                    navController.navigate("manage_users")
                 }
+            )
+        }
+        composable("manage_users"){
+            UserManagementScreen(
+                onBack = { navController.popBackStack() }
             )
         }
         composable("board/{boardId}") { backStackEntry ->

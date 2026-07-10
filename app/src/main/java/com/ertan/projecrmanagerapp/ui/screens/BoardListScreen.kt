@@ -1,5 +1,6 @@
 package com.ertan.projecrmanagerapp.ui.screens
 
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -23,6 +24,7 @@ import kotlinx.coroutines.launch
 fun BoardListScreen(
     onBoardClick: (Int) -> Unit,
     onLogout: () -> Unit,
+    onManageUsers: () -> Unit,
     viewModel: BoardViewModel = viewModel()
 ) {
     val context = LocalContext.current
@@ -41,6 +43,11 @@ fun BoardListScreen(
 
                     title = { Text("My Boards") },
                     actions = {
+                        if (role == "Admin") {
+                            IconButton(onClick = onManageUsers) {
+                                Icon(Icons.Default.Person, contentDescription = "Manage users")
+                            }
+                        }
                         if(token != null) {
                         IconButton(onClick = {
                             scope.launch {

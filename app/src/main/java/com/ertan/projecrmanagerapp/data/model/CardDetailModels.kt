@@ -27,3 +27,7 @@ data class CommentResponse(
 data class CreateCommentRequest(
     val content: String
 )
+
+data class UpdateSeniorityRequest(
+    val seniority: String
+)

@@ -11,6 +11,12 @@ interface ApiService {
     @GET("api/users")
     suspend fun getAllUsers(): Response<List<UserSummary>>
 
+    @PUT("api/users/{id}/seniority")
+    suspend fun updateSeniority(
+        @Path("id") userId: Int,
+        @Body request: UpdateSeniorityRequest
+    ): Response<Map<String, Any>>
+
     //Auth
     @POST("api/auth/register")
     suspend fun register(@Body request: RegisterRequest): Response<AuthResponse>
