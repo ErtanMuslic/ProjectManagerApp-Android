@@ -16,12 +16,13 @@ import com.ertan.projecrmanagerapp.ui.screens.CardDetailScreen
 import com.ertan.projecrmanagerapp.ui.screens.LoginScreen
 import com.ertan.projecrmanagerapp.ui.screens.RegisterScreen
 import com.ertan.projecrmanagerapp.ui.screens.UserManagementScreen
+import com.ertan.projecrmanagerapp.ui.theme.ProjectManagerAppTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            MaterialTheme {
+            ProjectManagerAppTheme() {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     AppNavigation()
                 }

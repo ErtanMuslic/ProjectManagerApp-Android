@@ -12,6 +12,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ertan.projecrmanagerapp.data.model.UserSummary
+import com.ertan.projecrmanagerapp.ui.components.EmptyState
+import com.ertan.projecrmanagerapp.ui.components.ErrorState
+import com.ertan.projecrmanagerapp.ui.components.LoadingState
 import com.ertan.projecrmanagerapp.viewmodel.UserManagementState
 import com.ertan.projecrmanagerapp.viewmodel.UserManagementViewModel
 
@@ -37,15 +40,11 @@ fun UserManagementScreen(
     ) { padding ->
         Box(modifier = Modifier.padding(padding).fillMaxSize()) {
             when (val s = state) {
-                is UserManagementState.Loading -> {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-                }
-                is UserManagementState.Error -> {
-                    Text(text = s.message, modifier = Modifier.align(Alignment.Center))
-                }
+                is UserManagementState.Loading -> LoadingState()
+                is UserManagementState.Error -> ErrorState(message = s.message, onRetry = {})
                 is UserManagementState.Success -> {
                     if (s.users.isEmpty()) {
-                        Text(text = "No users found.", modifier = Modifier.align(Alignment.Center))
+                        EmptyState(message = "No users found")
                     } else {
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),

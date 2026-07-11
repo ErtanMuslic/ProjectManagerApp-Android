@@ -19,6 +19,11 @@ import androidx.compose.ui.platform.LocalContext
 import com.ertan.projecrmanagerapp.data.local.TokenManager
 import com.ertan.projecrmanagerapp.data.model.CardDetail
 import com.ertan.projecrmanagerapp.data.model.ColumnDetail
+import com.ertan.projecrmanagerapp.ui.components.ErrorState
+import com.ertan.projecrmanagerapp.ui.components.LoadingState
+import com.ertan.projecrmanagerapp.ui.theme.PriorityHigh
+import com.ertan.projecrmanagerapp.ui.theme.PriorityLow
+import com.ertan.projecrmanagerapp.ui.theme.PriorityMedium
 import com.ertan.projecrmanagerapp.viewmodel.BoardDetailState
 import com.ertan.projecrmanagerapp.viewmodel.BoardDetailViewModel
 
@@ -75,12 +80,8 @@ fun BoardDetailScreen(
     ) { padding ->
         Box(modifier = Modifier.padding(padding).fillMaxSize()) {
             when (val s = state) {
-                is BoardDetailState.Loading -> {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-                }
-                is BoardDetailState.Error -> {
-                    Text(text = s.message, modifier = Modifier.align(Alignment.Center))
-                }
+                is BoardDetailState.Loading -> LoadingState()
+                is BoardDetailState.Error -> ErrorState(message = s.message, onRetry = {})
                 is BoardDetailState.Success -> {
                     LazyRow(
                         modifier = Modifier.fillMaxSize(),
@@ -234,9 +235,9 @@ fun SubColumnView(
 @Composable
 fun CardItem(card: CardDetail, onClick: () -> Unit) {
     val priorityColor = when (card.priority) {
-        "High" -> Color(0xFFE57373)
-        "Low" -> Color(0xFF81C784)
-        else -> Color(0xFFFFB74D)
+        "High" -> PriorityHigh
+        "Low" -> PriorityLow
+        else -> PriorityMedium
     }
 
     Card(

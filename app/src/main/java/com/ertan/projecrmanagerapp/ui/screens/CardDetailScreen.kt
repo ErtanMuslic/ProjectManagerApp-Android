@@ -18,6 +18,8 @@ import com.ertan.projecrmanagerapp.data.local.TokenManager
 import com.ertan.projecrmanagerapp.data.model.CommentResponse
 import com.ertan.projecrmanagerapp.data.model.UpdateCardRequest
 import com.ertan.projecrmanagerapp.data.model.UserSummary
+import com.ertan.projecrmanagerapp.ui.components.ErrorState
+import com.ertan.projecrmanagerapp.ui.components.LoadingState
 import com.ertan.projecrmanagerapp.viewmodel.CardDetailUiState
 import com.ertan.projecrmanagerapp.viewmodel.CardDetailViewModel
 import java.time.Instant
@@ -70,16 +72,8 @@ fun CardDetailScreen(
         }
     ) { padding ->
         when (val s = state) {
-            is CardDetailUiState.Loading -> {
-                Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
-                }
-            }
-            is CardDetailUiState.Error -> {
-                Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                    Text(s.message)
-                }
-            }
+            is CardDetailUiState.Loading -> LoadingState()
+            is CardDetailUiState.Error -> ErrorState(message = s.message, onRetry = {})
             is CardDetailUiState.Success -> {
                 var title by remember(s.card.id) { mutableStateOf(s.card.title) }
                 var description by remember(s.card.id) { mutableStateOf(s.card.description ?: "") }

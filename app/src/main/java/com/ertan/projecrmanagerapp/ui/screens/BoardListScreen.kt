@@ -15,6 +15,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ertan.projecrmanagerapp.data.local.TokenManager
+import com.ertan.projecrmanagerapp.ui.components.EmptyState
+import com.ertan.projecrmanagerapp.ui.components.ErrorState
+import com.ertan.projecrmanagerapp.ui.components.LoadingState
 import com.ertan.projecrmanagerapp.viewmodel.BoardListState
 import com.ertan.projecrmanagerapp.viewmodel.BoardViewModel
 import kotlinx.coroutines.launch
@@ -75,22 +78,11 @@ fun BoardListScreen(
     ) { padding ->
         Box(modifier = Modifier.padding(padding).fillMaxSize()) {
             when (val state = boardListState) {
-                is BoardListState.Loading -> {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-                }
-                is BoardListState.Error -> {
-                    Text(
-                        text = state.message,
-                        modifier = Modifier.align(Alignment.Center),
-                        color = MaterialTheme.colorScheme.error
-                    )
-                }
+                is BoardListState.Loading -> LoadingState()
+                is BoardListState.Error -> ErrorState(message = state.message, onRetry = {viewModel.loadBoards()})
                 is BoardListState.Success -> {
                     if (state.boards.isEmpty()) {
-                        Text(
-                            text = "No boards yet.",
-                            modifier = Modifier.align(Alignment.Center)
-                        )
+                        EmptyState(message = "No boards yet")
                     } else {
                         LazyColumn(modifier = Modifier.fillMaxSize()) {
                             items(state.boards) { board ->
