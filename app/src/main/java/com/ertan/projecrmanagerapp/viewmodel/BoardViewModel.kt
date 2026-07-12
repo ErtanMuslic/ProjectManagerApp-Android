@@ -56,4 +56,36 @@ class BoardViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
     }
+
+    fun updateBoard(boardId: Int, name: String, onComplete: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitInstance.api.updateBoard(boardId, CreateBoardRequest(name))
+                if (response.isSuccessful) {
+                    loadBoards()
+                    onComplete(true)
+                } else {
+                    onComplete(false)
+                }
+            } catch (e: Exception) {
+                onComplete(false)
+            }
+        }
+    }
+
+    fun deleteBoard(boardId: Int, onComplete: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitInstance.api.deleteBoard(boardId)
+                if (response.isSuccessful) {
+                    loadBoards()
+                    onComplete(true)
+                } else {
+                    onComplete(false)
+                }
+            } catch (e: Exception) {
+                onComplete(false)
+            }
+        }
+    }
 }

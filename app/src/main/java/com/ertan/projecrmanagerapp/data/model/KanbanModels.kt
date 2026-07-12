@@ -10,6 +10,7 @@ data class ColumnDetail(
     val id: Int,
     val name: String,
     val order: Int,
+    val cardLimit: Int?,
     val cards: List<CardDetail>,
     val subColumns: List<ColumnDetail>
 )
@@ -29,6 +30,7 @@ data class CardDetail(
 data class CreateColumnRequest(
     val name: String,
     val order: Int,
+    val cardLimit: Int? = null,
     val parentColumnId: Int? = null
 )
 
@@ -43,4 +45,11 @@ data class CreateCardRequest(
 data class MoveCardRequest(
     val newColumnId: Int,
     val newOrder: Int
+)
+
+data class UpdateColumnRequest(
+    val name: String? = null,
+    val order: Int? = null,
+    val cardLimit: Int? = null,
+    val clearCardLimit: Boolean = false
 )

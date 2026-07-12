@@ -7,6 +7,7 @@ import com.ertan.projecrmanagerapp.data.model.BoardDetail
 import com.ertan.projecrmanagerapp.data.model.CreateCardRequest
 import com.ertan.projecrmanagerapp.data.model.CreateColumnRequest
 import com.ertan.projecrmanagerapp.data.model.MoveCardRequest
+import com.ertan.projecrmanagerapp.data.model.UpdateColumnRequest
 import com.ertan.projecrmanagerapp.data.remote.RetrofitInstance
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -42,7 +43,7 @@ class BoardDetailViewModel(application: Application) : AndroidViewModel(applicat
         }
     }
 
-    fun createColumn(name: String, parentColumnId: Int?, onComplete: (Boolean) -> Unit) {
+    fun createColumn(name: String, parentColumnId: Int?, cardLimit: Int?, onComplete: (Boolean) -> Unit) {
         val currentState = _state.value
         if (currentState !is BoardDetailState.Success) {
             onComplete(false)
@@ -60,8 +61,29 @@ class BoardDetailViewModel(application: Application) : AndroidViewModel(applicat
             try {
                 val response = RetrofitInstance.api.createColumn(
                     currentBoardId,
-                    CreateColumnRequest(name, order, parentColumnId)
+                    CreateColumnRequest(name, order, parentColumnId, cardLimit)
                 )
+                if (response.isSuccessful) {
+                    loadBoard(currentBoardId)
+                    onComplete(true)
+                } else {
+                    onComplete(false)
+                }
+            } catch (e: Exception) {
+                onComplete(false)
+            }
+        }
+    }
+
+    fun updateColumnLimit(columnId: Int, newLimit: Int?, onComplete: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val request = if (newLimit == null) {
+                    UpdateColumnRequest(clearCardLimit = true)
+                } else {
+                    UpdateColumnRequest(cardLimit = newLimit)
+                }
+                val response = RetrofitInstance.api.updateColumn(columnId, request)
                 if (response.isSuccessful) {
                     loadBoard(currentBoardId)
                     onComplete(true)

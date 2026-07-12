@@ -21,6 +21,7 @@ import com.ertan.projecrmanagerapp.ui.components.LoadingState
 import com.ertan.projecrmanagerapp.viewmodel.BoardListState
 import com.ertan.projecrmanagerapp.viewmodel.BoardViewModel
 import kotlinx.coroutines.launch
+import androidx.compose.material.icons.filled.MoreVert
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -86,15 +87,77 @@ fun BoardListScreen(
                     } else {
                         LazyColumn(modifier = Modifier.fillMaxSize()) {
                             items(state.boards) { board ->
+                                var showMenu by remember { mutableStateOf(false) }
+                                var showEditDialog by remember { mutableStateOf(false) }
+                                var showDeleteConfirm by remember { mutableStateOf(false) }
+
                                 Card(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .padding(horizontal = 16.dp, vertical = 8.dp),
                                     onClick = { onBoardClick(board.id) }
                                 ) {
-                                    Column(modifier = Modifier.padding(16.dp)) {
+                                    Row(
+                                        modifier = Modifier.padding(16.dp).fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
                                         Text(text = board.name, style = MaterialTheme.typography.titleMedium)
+
+                                        if (role == "Admin") {
+                                            Box {
+                                                IconButton(onClick = { showMenu = true }) {
+                                                    Icon(Icons.Default.MoreVert, contentDescription = "Board options")
+                                                }
+                                                DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
+                                                    DropdownMenuItem(
+                                                        text = { Text("Edit") },
+                                                        onClick = {
+                                                            showMenu = false
+                                                            showEditDialog = true
+                                                        }
+                                                    )
+                                                    DropdownMenuItem(
+                                                        text = { Text("Delete") },
+                                                        onClick = {
+                                                            showMenu = false
+                                                            showDeleteConfirm = true
+                                                        }
+                                                    )
+                                                }
+                                            }
+                                        }
                                     }
+                                }
+
+                                if (showEditDialog) {
+                                    EditBoardDialog(
+                                        currentName = board.name,
+                                        onDismiss = { showEditDialog = false },
+                                        onConfirm = { newName ->
+                                            viewModel.updateBoard(board.id, newName) { showEditDialog = false }
+                                        }
+                                    )
+                                }
+
+                                if (showDeleteConfirm) {
+                                    AlertDialog(
+                                        onDismissRequest = { showDeleteConfirm = false },
+                                        title = { Text("Delete board?") },
+                                        text = { Text("This will delete \"${board.name}\" and all of its columns and cards. This action cannot be undone.") },
+                                        confirmButton = {
+                                            TextButton(onClick = {
+                                                viewModel.deleteBoard(board.id) { showDeleteConfirm = false }
+                                            }) {
+                                                Text("Delete")
+                                            }
+                                        },
+                                        dismissButton = {
+                                            TextButton(onClick = { showDeleteConfirm = false }) {
+                                                Text("Cancel")
+                                            }
+                                        }
+                                    )
                                 }
                             }
                         }
@@ -102,6 +165,7 @@ fun BoardListScreen(
                 }
             }
         }
+
 
         if (showCreateDialog) {
             CreateBoardDialog(
@@ -133,6 +197,33 @@ fun CreateBoardDialog(onDismiss: () -> Unit, onCreate: (String) -> Unit) {
         confirmButton = {
             TextButton(onClick = { if (name.isNotBlank()) onCreate(name) }) {
                 Text("Create")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
+}
+
+@Composable
+fun EditBoardDialog(currentName: String, onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
+    var name by remember { mutableStateOf(currentName) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Edit board name") },
+        text = {
+            OutlinedTextField(
+                value = name,
+                onValueChange = { name = it },
+                label = { Text("Board name") }
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = { if (name.isNotBlank()) onConfirm(name) }) {
+                Text("Save")
             }
         },
         dismissButton = {

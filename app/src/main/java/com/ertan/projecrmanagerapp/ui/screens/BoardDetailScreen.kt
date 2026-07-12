@@ -1,6 +1,7 @@
 package com.ertan.projecrmanagerapp.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -45,6 +46,7 @@ fun BoardDetailScreen(
     var cardToMove by remember { mutableStateOf<CardDetail?>(null) }
     var showCreateColumnDialog by remember { mutableStateOf(false) }
     var showCreateSubColumnDialog by remember { mutableStateOf<Int?>(null) } // holds parent column id
+    var columnToEditLimit by remember { mutableStateOf<ColumnDetail?>(null)}
 
     LaunchedEffect(boardId) {
         viewModel.loadBoard(boardId)
@@ -94,6 +96,7 @@ fun BoardDetailScreen(
                                 isGuest = isGuest,
                                 onAddCard = { columnId -> if(!isGuest) showCreateCardDialog = columnId },
                                 onCardClick = { card -> onCardClick(card.id) },
+                                onEditLimit = { column -> columnToEditLimit = column},
                                 onAddSubColumn = { parentId -> showCreateSubColumnDialog = parentId }
                             )
                         }
@@ -117,8 +120,8 @@ fun BoardDetailScreen(
             CreateColumnDialog(
                 isSubColumn = false,
                 onDismiss = { showCreateColumnDialog = false },
-                onCreate = { name ->
-                    viewModel.createColumn(name, null) {
+                onCreate = { name, cardLimit ->
+                    viewModel.createColumn(name, null, cardLimit) {
                         showCreateColumnDialog = false
                     }
                 }
@@ -129,9 +132,21 @@ fun BoardDetailScreen(
             CreateColumnDialog(
                 isSubColumn = true,
                 onDismiss = { showCreateSubColumnDialog = null },
-                onCreate = { name ->
-                    viewModel.createColumn(name, parentId) {
+                onCreate = { name, cardLimit->
+                    viewModel.createColumn(name, parentId, cardLimit) {
                         showCreateSubColumnDialog = null
+                    }
+                }
+            )
+        }
+
+        columnToEditLimit?.let { column ->
+            EditLimitDialog(
+                column = column,
+                onDismiss = { columnToEditLimit = null },
+                onSave = { newLimit ->
+                    viewModel.updateColumnLimit(column.id, newLimit) {
+                        columnToEditLimit = null
                     }
                 }
             )
@@ -146,7 +161,8 @@ fun ColumnView(
     isGuest: Boolean,
     onAddCard: (Int) -> Unit,
     onCardClick: (CardDetail) -> Unit,
-    onAddSubColumn: (Int) -> Unit
+    onAddSubColumn: (Int) -> Unit,
+    onEditLimit: (ColumnDetail) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -158,23 +174,47 @@ fun ColumnView(
             horizontalArrangement = Arrangement.SpaceBetween,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text(text = column.name, style = MaterialTheme.typography.titleMedium)
+            Column {
+                Text(text = column.name, style = MaterialTheme.typography.titleMedium)
+                if (column.cardLimit != null && column.subColumns.isEmpty()) {
+                    val isFull = column.cards.size >= column.cardLimit
+                    Text(
+                        text = "${column.cards.size}/${column.cardLimit} cards",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = if (isFull) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
 
-            // Only offer "add sub-column" for admin, and only if this column has no direct cards yet
-            // (avoids the edge case of orphaning existing cards when a leaf column becomes a parent)
-            if (isAdmin && column.cards.isEmpty()) {
-                IconButton(onClick = { onAddSubColumn(column.id) }, modifier = Modifier.size(28.dp)) {
-                    Icon(Icons.Default.Add, contentDescription = "Add sub-column")
+            Row {
+                if (isAdmin && column.subColumns.isEmpty()) {
+                    IconButton(onClick = { onEditLimit(column) }, modifier = Modifier.size(28.dp)) {
+                        Icon(Icons.Default.Settings, contentDescription = "Edit WIP limit")
+                    }
+                }
+                if (isAdmin && column.cards.isEmpty()) {
+                    IconButton(onClick = { onAddSubColumn(column.id) }, modifier = Modifier.size(28.dp)) {
+                        Icon(Icons.Default.Add, contentDescription = "Add sub-column")
+                    }
                 }
             }
         }
         Spacer(modifier = Modifier.height(8.dp))
 
+        val isFull = column.cardLimit != null && column.cards.size >= column.cardLimit
+
         if (column.subColumns.isNotEmpty()) {
             LazyRow {
                 items(column.subColumns) { subColumn ->
                     Box(modifier = Modifier.width(260.dp).padding(horizontal = 4.dp)) {
-                        SubColumnView(subColumn = subColumn, onAddCard = onAddCard, onCardClick = onCardClick, isGuest = isGuest)
+                        SubColumnView(
+                            subColumn = subColumn,
+                            isGuest = isGuest,
+                            onAddCard = onAddCard,
+                            onCardClick = onCardClick,
+                            onEditLimit = onEditLimit,
+                            isAdmin = isAdmin
+                        )
                     }
                 }
             }
@@ -183,16 +223,15 @@ fun ColumnView(
                 items(column.cards) { card ->
                     CardItem(card = card, onClick = { onCardClick(card) })
                 }
-                if(!isGuest) {
+                if (!isGuest) {
                     item {
-                        TextButton(onClick = { onAddCard(column.id) }) {
-                            Icon(
-                                Icons.Default.Add,
-                                contentDescription = null,
-                                modifier = Modifier.size(16.dp)
-                            )
+                        TextButton(
+                            onClick = { onAddCard(column.id) },
+                            enabled = !isFull
+                        ) {
+                            Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
                             Spacer(modifier = Modifier.width(4.dp))
-                            Text("Add card")
+                            Text(if (isFull) "Column full" else "Add card")
                         }
                     }
                 }
@@ -205,26 +244,49 @@ fun ColumnView(
 fun SubColumnView(
     subColumn: ColumnDetail,
     isGuest: Boolean,
+    isAdmin: Boolean,
     onAddCard: (Int) -> Unit,
-    onCardClick: (CardDetail) -> Unit
+    onCardClick: (CardDetail) -> Unit,
+    onEditLimit: (ColumnDetail) -> Unit
 ) {
+    val isFull = subColumn.cardLimit != null && subColumn.cards.size >= subColumn.cardLimit
+
     Column {
-        Text(text = subColumn.name, style = MaterialTheme.typography.titleSmall)
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column {
+                Text(text = subColumn.name, style = MaterialTheme.typography.titleSmall)
+                if (subColumn.cardLimit != null) {
+                    Text(
+                        text = "${subColumn.cards.size}/${subColumn.cardLimit} cards",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = if (isFull) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            if (isAdmin) {
+                IconButton(onClick = { onEditLimit(subColumn) }, modifier = Modifier.size(24.dp)) {
+                    Icon(Icons.Default.Settings, contentDescription = "Edit WIP limit", modifier = Modifier.size(16.dp))
+                }
+            }
+        }
         Spacer(modifier = Modifier.height(4.dp))
         LazyColumn(modifier = Modifier.heightIn(max = 500.dp)) {
             items(subColumn.cards) { card ->
                 CardItem(card = card, onClick = { onCardClick(card) })
             }
-            if(!isGuest) {
+            if (!isGuest) {
                 item {
-                    TextButton(onClick = { onAddCard(subColumn.id) }) {
-                        Icon(
-                            Icons.Default.Add,
-                            contentDescription = null,
-                            modifier = Modifier.size(16.dp)
-                        )
+                    TextButton(
+                        onClick = { onAddCard(subColumn.id) },
+                        enabled = !isFull
+                    ) {
+                        Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text("Add card")
+                        Text(if (isFull) "Column full" else "Add card")
                     }
                 }
             }
@@ -354,23 +416,67 @@ fun MoveCardDialog(
 fun CreateColumnDialog(
     isSubColumn: Boolean,
     onDismiss: () -> Unit,
-    onCreate: (String) -> Unit
+    onCreate: (name: String, cardLimit: Int?) -> Unit
 ) {
     var name by remember { mutableStateOf("") }
+    var limitText by remember { mutableStateOf("") }
 
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(if (isSubColumn) "Add sub-column" else "Add column") },
         text = {
+            Column {
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Column name") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = limitText,
+                    onValueChange = { limitText = it.filter { c -> c.isDigit() } },
+                    label = { Text("WIP limit (optional)") },
+                    supportingText = { Text("Leave empty for no limit") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                if (name.isNotBlank()) {
+                    onCreate(name, limitText.toIntOrNull())
+                }
+            }) {
+                Text("Add")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
+}
+
+@Composable
+fun EditLimitDialog(column: ColumnDetail, onDismiss: () -> Unit, onSave: (Int?) -> Unit) {
+    var limitText by remember { mutableStateOf(column.cardLimit?.toString() ?: "") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("WIP limit for \"${column.name}\"") },
+        text = {
             OutlinedTextField(
-                value = name,
-                onValueChange = { name = it },
-                label = { Text("Column name") }
+                value = limitText,
+                onValueChange = { limitText = it.filter { c -> c.isDigit() } },
+                label = { Text("Max cards (empty = no limit)") },
+                modifier = Modifier.fillMaxWidth()
             )
         },
         confirmButton = {
-            TextButton(onClick = { if (name.isNotBlank()) onCreate(name) }) {
-                Text("Add")
+            TextButton(onClick = { onSave(limitText.toIntOrNull()) }) {
+                Text("Save")
             }
         },
         dismissButton = {
