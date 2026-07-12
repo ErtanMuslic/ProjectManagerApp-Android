@@ -14,6 +14,7 @@ import com.ertan.projecrmanagerapp.ui.screens.BoardDetailScreen
 import com.ertan.projecrmanagerapp.ui.screens.BoardListScreen
 import com.ertan.projecrmanagerapp.ui.screens.CardDetailScreen
 import com.ertan.projecrmanagerapp.ui.screens.LoginScreen
+import com.ertan.projecrmanagerapp.ui.screens.MyTasksScreen
 import com.ertan.projecrmanagerapp.ui.screens.RegisterScreen
 import com.ertan.projecrmanagerapp.ui.screens.UserManagementScreen
 import com.ertan.projecrmanagerapp.ui.theme.ProjectManagerAppTheme
@@ -73,6 +74,17 @@ fun AppNavigation() {
                 },
                 onManageUsers = {
                     navController.navigate("manage_users")
+                },
+                onMyTasks = {
+                    navController.navigate("my_tasks")
+                }
+            )
+        }
+        composable("my_tasks"){
+            MyTasksScreen(
+            onBack = {navController.popBackStack()},
+            onTaskClick = {boardId, cardId ->
+                navController.navigate("board/$boardId/card/$cardId")
                 }
             )
         }

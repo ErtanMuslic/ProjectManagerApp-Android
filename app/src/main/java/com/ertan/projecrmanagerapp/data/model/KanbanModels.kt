@@ -62,3 +62,14 @@ data class ColumnOrderItem(
     val columnId: Int,
     val newOrder: Int
 )
+
+data class MyTaskResponse(
+    val cardId: Int,
+    val title: String,
+    val description: String?,
+    val priority: String,
+    val dueDate: String?,
+    val boardId: Int,
+    val boardName: String,
+    val columnName: String
+)

@@ -93,6 +93,9 @@ interface ApiService {
     @DELETE("api/cards/{id}")
     suspend fun deleteCard(@Path("id") cardId: Int): Response<Map<String, Any>>
 
+    @GET("api/cards/my-tasks")
+    suspend fun getMyTasks(): Response<List<MyTaskResponse>>
+
 
     //Columns
     @PUT("api/boards/columns/{columnId}")
