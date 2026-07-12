@@ -27,6 +27,14 @@ interface ApiService {
     @POST("api/auth/google")
     suspend fun googleLogin(@Body request: GoogleLoginRequest): Response<AuthResponse>
 
+    @GET("api/auth/me")
+    suspend fun getMyAccount(): Response<AccountInfoResponse>
+
+    @PUT("api/auth/me")
+    suspend fun updateMyAccount(@Body request: UpdateAccountRequest): Response<Map<String, Any>>
+
+    @DELETE("api/auth/me")
+    suspend fun deleteMyAccount(): Response<Map<String, Any>>
 
     //Board
     @GET("api/boards")

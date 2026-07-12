@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.ertan.projecrmanagerapp.ui.screens.AccountSettingsScreen
 import com.ertan.projecrmanagerapp.ui.screens.BoardDetailScreen
 import com.ertan.projecrmanagerapp.ui.screens.BoardListScreen
 import com.ertan.projecrmanagerapp.ui.screens.CardDetailScreen
@@ -77,7 +78,16 @@ fun AppNavigation() {
                 },
                 onMyTasks = {
                     navController.navigate("my_tasks")
+                },
+                onAccountSettings = {
+                    navController.navigate("account_settings")
                 }
+            )
+        }
+        composable("account_settings") {
+            AccountSettingsScreen(
+                onBack = { navController.popBackStack()},
+                onAccountDeleted = {navController.navigate("login") {popUpTo(0) {inclusive = true} } }
             )
         }
         composable("my_tasks"){

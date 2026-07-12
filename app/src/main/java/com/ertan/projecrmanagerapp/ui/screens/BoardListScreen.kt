@@ -8,6 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Assignment
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -31,6 +32,7 @@ fun BoardListScreen(
     onLogout: () -> Unit,
     onManageUsers: () -> Unit,
     onMyTasks: () -> Unit,
+    onAccountSettings: () -> Unit,
     viewModel: BoardViewModel = viewModel()
 ) {
     val context = LocalContext.current
@@ -52,6 +54,9 @@ fun BoardListScreen(
                         if(token !=null){
                             IconButton(onClick = onMyTasks) {
                                 Icon(Icons.Default.Assignment, contentDescription = "My tasks")
+                            }
+                            IconButton(onClick = onAccountSettings) {
+                                Icon(Icons.Default.Settings, contentDescription = "Account settings")
                             }
                         }
 
