@@ -54,6 +54,8 @@ interface ApiService {
     suspend fun deleteBoard(@Path("id") boardId: Int): Response<Map<String, Any>>
 
 
+
+
     //Cards
     @POST("api/columns/{columnId}/cards")
     suspend fun createCard(
@@ -91,10 +93,18 @@ interface ApiService {
     @DELETE("api/cards/{id}")
     suspend fun deleteCard(@Path("id") cardId: Int): Response<Map<String, Any>>
 
+
+    //Columns
     @PUT("api/boards/columns/{columnId}")
     suspend fun updateColumn(
         @Path("columnId") columnId: Int,
         @Body request: UpdateColumnRequest
+    ): Response<Map<String, Any>>
+
+    @PUT("api/boards/{boardId}/columns/reorder")
+    suspend fun reorderColumns(
+        @Path("boardId") boardId: Int,
+        @Body request: ReorderColumnsRequest
     ): Response<Map<String, Any>>
 
 }

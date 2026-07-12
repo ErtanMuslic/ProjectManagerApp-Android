@@ -14,6 +14,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.material.icons.filled.ChevronLeft
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.ui.platform.LocalContext
@@ -85,19 +87,24 @@ fun BoardDetailScreen(
                 is BoardDetailState.Loading -> LoadingState()
                 is BoardDetailState.Error -> ErrorState(message = s.message, onRetry = {})
                 is BoardDetailState.Success -> {
+                    val sortedColumns = s.board.columns.sortedBy { it.order }
                     LazyRow(
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(12.dp)
                     ) {
-                        items(s.board.columns) { column ->
+                        items(sortedColumns) { column ->
                             ColumnView(
                                 column = column,
                                 isAdmin = isAdmin,
                                 isGuest = isGuest,
+                                isFirst = column.id == sortedColumns.first().id,
+                                isLast = column.id == sortedColumns.last().id,
                                 onAddCard = { columnId -> if(!isGuest) showCreateCardDialog = columnId },
                                 onCardClick = { card -> onCardClick(card.id) },
                                 onEditLimit = { column -> columnToEditLimit = column},
-                                onAddSubColumn = { parentId -> showCreateSubColumnDialog = parentId }
+                                onAddSubColumn = { parentId -> showCreateSubColumnDialog = parentId },
+                                onMoveLeft = {columnId -> viewModel.moveColumnLeft(columnId)},
+                                onMoveRight = {columnId -> viewModel.moveColumnRight(columnId)}
                             )
                         }
                     }
@@ -159,10 +166,14 @@ fun ColumnView(
     column: ColumnDetail,
     isAdmin: Boolean,
     isGuest: Boolean,
+    isFirst: Boolean,
+    isLast: Boolean,
     onAddCard: (Int) -> Unit,
     onCardClick: (CardDetail) -> Unit,
     onAddSubColumn: (Int) -> Unit,
-    onEditLimit: (ColumnDetail) -> Unit
+    onEditLimit: (ColumnDetail) -> Unit,
+    onMoveLeft: (Int) -> Unit,
+    onMoveRight: (Int) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -187,6 +198,22 @@ fun ColumnView(
             }
 
             Row {
+                if (isAdmin) {
+                    IconButton(
+                        onClick = { onMoveLeft(column.id) },
+                        enabled = !isFirst,
+                        modifier = Modifier.size(28.dp)
+                    ) {
+                        Icon(Icons.Default.ChevronLeft, contentDescription = "Move column left")
+                    }
+                    IconButton(
+                        onClick = { onMoveRight(column.id) },
+                        enabled = !isLast,
+                        modifier = Modifier.size(28.dp)
+                    ) {
+                        Icon(Icons.Default.ChevronRight, contentDescription = "Move column right")
+                    }
+                }
                 if (isAdmin && column.subColumns.isEmpty()) {
                     IconButton(onClick = { onEditLimit(column) }, modifier = Modifier.size(28.dp)) {
                         Icon(Icons.Default.Settings, contentDescription = "Edit WIP limit")
@@ -204,16 +231,21 @@ fun ColumnView(
         val isFull = column.cardLimit != null && column.cards.size >= column.cardLimit
 
         if (column.subColumns.isNotEmpty()) {
+            val sortedSubColumns = column.subColumns.sortedBy { it.order }
             LazyRow {
-                items(column.subColumns) { subColumn ->
+                items(sortedSubColumns) { subColumn ->
                     Box(modifier = Modifier.width(260.dp).padding(horizontal = 4.dp)) {
                         SubColumnView(
                             subColumn = subColumn,
                             isGuest = isGuest,
+                            isAdmin = isAdmin,
+                            isFirst = subColumn.id == sortedSubColumns.first().id,
+                            isLast = subColumn.id == sortedSubColumns.last().id,
                             onAddCard = onAddCard,
                             onCardClick = onCardClick,
                             onEditLimit = onEditLimit,
-                            isAdmin = isAdmin
+                            onMoveLeft = onMoveLeft,
+                            onMoveRight = onMoveRight
                         )
                     }
                 }
@@ -245,9 +277,13 @@ fun SubColumnView(
     subColumn: ColumnDetail,
     isGuest: Boolean,
     isAdmin: Boolean,
+    isFirst: Boolean,
+    isLast: Boolean,
     onAddCard: (Int) -> Unit,
     onCardClick: (CardDetail) -> Unit,
-    onEditLimit: (ColumnDetail) -> Unit
+    onEditLimit: (ColumnDetail) -> Unit,
+    onMoveLeft: (Int) -> Unit,
+    onMoveRight: (Int) -> Unit
 ) {
     val isFull = subColumn.cardLimit != null && subColumn.cards.size >= subColumn.cardLimit
 
@@ -267,9 +303,25 @@ fun SubColumnView(
                     )
                 }
             }
-            if (isAdmin) {
-                IconButton(onClick = { onEditLimit(subColumn) }, modifier = Modifier.size(24.dp)) {
-                    Icon(Icons.Default.Settings, contentDescription = "Edit WIP limit", modifier = Modifier.size(16.dp))
+            Row {
+                if (isAdmin) {
+                    IconButton(
+                        onClick = { onMoveLeft(subColumn.id) },
+                        enabled = !isFirst,
+                        modifier = Modifier.size(24.dp)
+                    ) {
+                        Icon(Icons.Default.ChevronLeft, contentDescription = "Move left", modifier = Modifier.size(16.dp))
+                    }
+                    IconButton(
+                        onClick = { onMoveRight(subColumn.id) },
+                        enabled = !isLast,
+                        modifier = Modifier.size(24.dp)
+                    ) {
+                        Icon(Icons.Default.ChevronRight, contentDescription = "Move right", modifier = Modifier.size(16.dp))
+                    }
+                    IconButton(onClick = { onEditLimit(subColumn) }, modifier = Modifier.size(24.dp)) {
+                        Icon(Icons.Default.Settings, contentDescription = "Edit WIP limit", modifier = Modifier.size(16.dp))
+                    }
                 }
             }
         }

@@ -4,9 +4,12 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.ertan.projecrmanagerapp.data.model.BoardDetail
+import com.ertan.projecrmanagerapp.data.model.ColumnDetail
+import com.ertan.projecrmanagerapp.data.model.ColumnOrderItem
 import com.ertan.projecrmanagerapp.data.model.CreateCardRequest
 import com.ertan.projecrmanagerapp.data.model.CreateColumnRequest
 import com.ertan.projecrmanagerapp.data.model.MoveCardRequest
+import com.ertan.projecrmanagerapp.data.model.ReorderColumnsRequest
 import com.ertan.projecrmanagerapp.data.model.UpdateColumnRequest
 import com.ertan.projecrmanagerapp.data.remote.RetrofitInstance
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -122,6 +125,59 @@ class BoardDetailViewModel(application: Application) : AndroidViewModel(applicat
                 loadBoard(currentBoardId)
             } catch (e: Exception) {
                 // Silently fail for now; could show a snackbar later
+            }
+        }
+    }
+
+    fun moveColumnLeft(columnId: Int) {
+        swapColumnOrder(columnId, moveRight = false)
+    }
+
+    fun moveColumnRight(columnId: Int) {
+        swapColumnOrder(columnId, moveRight = true)
+    }
+
+    private fun swapColumnOrder(columnId: Int, moveRight: Boolean) {
+        val currentState = _state.value
+        if (currentState !is BoardDetailState.Success) return
+
+        val mainColumns = currentState.board.columns.sortedBy { it.order }
+        val mainIndex = mainColumns.indexOfFirst { it.id == columnId }
+
+        val siblings: List<ColumnDetail>
+
+        if (mainIndex != -1) {
+            siblings = mainColumns
+        } else {
+            val parent = mainColumns.find { parent -> parent.subColumns.any { it.id == columnId } }
+            siblings = parent?.subColumns?.sortedBy { it.order } ?: return
+        }
+
+        val currentIndex = siblings.indexOfFirst { it.id == columnId }
+        val swapIndex = if (moveRight) currentIndex + 1 else currentIndex - 1
+
+        if (currentIndex == -1 || swapIndex < 0 || swapIndex >= siblings.size) return
+
+        // Rebuild the sibling order list from scratch (0..n-1), based on current on-screen position,
+        // then swap the two target positions. This avoids issues if the stored "order" values
+        // in the database are duplicated or inconsistent.
+        val reordered = siblings.toMutableList()
+        val temp = reordered[currentIndex]
+        reordered[currentIndex] = reordered[swapIndex]
+        reordered[swapIndex] = temp
+
+        val orderItems = reordered.mapIndexed { index, col ->
+            ColumnOrderItem(col.id, index)
+        }
+
+        val request = ReorderColumnsRequest(columns = orderItems)
+
+        viewModelScope.launch {
+            try {
+                RetrofitInstance.api.reorderColumns(currentBoardId, request)
+                loadBoard(currentBoardId)
+            } catch (e: Exception) {
+                // Silently ignore for now
             }
         }
     }

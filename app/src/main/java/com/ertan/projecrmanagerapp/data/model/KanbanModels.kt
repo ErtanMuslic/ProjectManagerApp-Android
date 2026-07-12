@@ -53,3 +53,12 @@ data class UpdateColumnRequest(
     val cardLimit: Int? = null,
     val clearCardLimit: Boolean = false
 )
+
+data class ReorderColumnsRequest(
+    val columns: List<ColumnOrderItem>
+)
+
+data class ColumnOrderItem(
+    val columnId: Int,
+    val newOrder: Int
+)
