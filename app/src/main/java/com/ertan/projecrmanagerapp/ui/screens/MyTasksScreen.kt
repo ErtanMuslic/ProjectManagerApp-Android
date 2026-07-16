@@ -26,20 +26,23 @@ import com.ertan.projecrmanagerapp.ui.components.PriorityBadge
 fun MyTasksScreen(
     onBack: () -> Unit,
     onTaskClick: (boardId: Int, cardId: Int) -> Unit,
+    showTopBar: Boolean = true,
     viewModel: MyTasksViewModel = viewModel()
 ) {
     val state by viewModel.state.collectAsState()
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("My Tasks") },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+            if(showTopBar) {
+                TopAppBar(
+                    title = { Text("My Tasks") },
+                    navigationIcon = {
+                        IconButton(onClick = onBack) {
+                            Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        }
                     }
-                }
-            )
+                )
+            }
         }
     ) { padding ->
         Box(modifier = Modifier.padding(padding).fillMaxSize()) {

@@ -21,6 +21,7 @@ import com.ertan.projecrmanagerapp.ui.components.LoadingState
 fun AccountSettingsScreen(
     onBack: () -> Unit,
     onAccountDeleted: () -> Unit,
+    showTopBar: Boolean = true,
     viewModel: AccountViewModel = viewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -46,14 +47,16 @@ fun AccountSettingsScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Account Settings") },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+            if(showTopBar) {
+                TopAppBar(
+                    title = { Text("Account Settings") },
+                    navigationIcon = {
+                        IconButton(onClick = onBack) {
+                            Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        }
                     }
-                }
-            )
+                )
+            }
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->

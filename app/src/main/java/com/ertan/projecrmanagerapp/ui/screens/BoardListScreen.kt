@@ -30,9 +30,6 @@ import androidx.compose.material.icons.filled.MoreVert
 fun BoardListScreen(
     onBoardClick: (Int) -> Unit,
     onLogout: () -> Unit,
-    onManageUsers: () -> Unit,
-    onMyTasks: () -> Unit,
-    onAccountSettings: () -> Unit,
     viewModel: BoardViewModel = viewModel()
 ) {
     val context = LocalContext.current
@@ -51,20 +48,6 @@ fun BoardListScreen(
 
                     title = { Text("My Boards") },
                     actions = {
-                        if(token !=null){
-                            IconButton(onClick = onMyTasks) {
-                                Icon(Icons.Default.Assignment, contentDescription = "My tasks")
-                            }
-                            IconButton(onClick = onAccountSettings) {
-                                Icon(Icons.Default.Settings, contentDescription = "Account settings")
-                            }
-                        }
-
-                        if (role == "Admin") {
-                            IconButton(onClick = onManageUsers) {
-                                Icon(Icons.Default.Person, contentDescription = "Manage users")
-                            }
-                        }
                         if(token != null) {
                         IconButton(onClick = {
                             scope.launch {
