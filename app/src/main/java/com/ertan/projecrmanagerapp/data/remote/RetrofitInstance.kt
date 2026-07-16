@@ -18,7 +18,13 @@ import java.security.cert.X509Certificate
 
 object RetrofitInstance {
 
-    private const val BASE_URL = "https://192.168.2.28:7204/"
+    // Pick ONE of these depending on the current network setup:
+    private const val BASE_URL_HOME_WIFI = "https://192.168.2.28:7204/"
+    private const val BASE_URL_HOTSPOT = "https://10.114.6.22:7204/"
+    private const val BASE_URL_NGROK = "https://unpiratical-nondivulging-yolanda.ngrok-free.dev/"  // need to be updated each time ngrok restarts
+
+    // Active URL - change when needed
+    private const val BASE_URL = BASE_URL_HOME_WIFI
 
     private lateinit var tokenManager: TokenManager
 

@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import android.widget.Toast
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ertan.projecrmanagerapp.data.local.TokenManager
 import com.ertan.projecrmanagerapp.data.model.CommentResponse
@@ -40,6 +41,8 @@ fun CardDetailScreen(
     val currentUserId by tokenManager.getUserId().collectAsState(initial = null)
     val isAdmin = role == "Admin"
     val isGuest = role == null
+    val seniority by tokenManager.getSeniority().collectAsState(initial = null)
+    val canEditCards = isAdmin || seniority == "Senior"
 
     var showMoveDialog by remember { mutableStateOf(false) }
     var showDeleteConfirm by remember { mutableStateOf(false) }
@@ -62,7 +65,7 @@ fun CardDetailScreen(
                     }
                 },
                 actions = {
-                    if(!isGuest){
+                    if(canEditCards){
                     IconButton(onClick = { showDeleteConfirm = true }) {
                         Icon(Icons.Default.Delete, contentDescription = "Delete card")
                     }
@@ -87,9 +90,9 @@ fun CardDetailScreen(
                     item {
                         OutlinedTextField(
                             value = title,
-                            onValueChange = { if (!isGuest) title = it },
+                            onValueChange = { if (canEditCards) title = it },
                             label = { Text("Title") },
-                            readOnly = isGuest,
+                            readOnly = !canEditCards,
                             modifier = Modifier.fillMaxWidth()
                         )
                     }
@@ -97,9 +100,9 @@ fun CardDetailScreen(
                     item {
                         OutlinedTextField(
                             value = description,
-                            onValueChange = { if(!isGuest) description = it },
+                            onValueChange = { if(canEditCards) description = it },
                             label = { Text("Description") },
-                            readOnly = isGuest,
+                            readOnly = !canEditCards,
                             modifier = Modifier.fillMaxWidth(),
                             minLines = 2
                         )
@@ -113,7 +116,7 @@ fun CardDetailScreen(
                                 SegmentedButton(
                                     selected = priority == option,
                                     onClick = { priority = option },
-                                    enabled = !isGuest,
+                                    enabled = canEditCards,
                                     shape = SegmentedButtonDefaults.itemShape(index = index, count = 3)
                                 ) {
                                     Text(option)
@@ -126,7 +129,7 @@ fun CardDetailScreen(
                         Text("Due date", style = MaterialTheme.typography.labelLarge)
                         Spacer(modifier = Modifier.height(4.dp))
                         OutlinedButton(onClick = { showDatePicker = true },
-                            enabled = !isGuest) {
+                            enabled = canEditCards) {
                             Text(formatDueDate(s.card.dueDate) ?: "Set due date")
                         }
                     }
@@ -137,13 +140,13 @@ fun CardDetailScreen(
                         AssigneeDropdown(
                             users = s.users,
                             selectedUserId = assignedUserId,
-                            enabled = !isGuest,
+                            enabled = canEditCards,
                             onSelect = { assignedUserId = it }
                         )
                     }
 
                     item {
-                        if(!isGuest) {
+                        if(canEditCards) {
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Button(onClick = {
                                     viewModel.updateCard(
@@ -159,6 +162,28 @@ fun CardDetailScreen(
                                 }
                                 OutlinedButton(onClick = { showMoveDialog = true }) {
                                     Text("Move to...")
+                                }
+                            }
+                        }
+                    }
+                    item {
+                        val context = LocalContext.current
+                        if (!isGuest) {
+                            if (s.card.assignedUserId == currentUserId) {
+                                OutlinedButton(onClick = {
+                                    viewModel.unassignMe { success ->
+                                        Toast.makeText(context, if (success) "Unassigned." else "Failed to unassign.", Toast.LENGTH_SHORT).show()
+                                    }
+                                }) {
+                                    Text("Unassign myself")
+                                }
+                            } else if (s.card.assignedUserId == null) {
+                                Button(onClick = {
+                                    viewModel.assignToMe { success, error ->
+                                        Toast.makeText(context, if (success) "Assigned to you." else (error ?: "Failed."), Toast.LENGTH_SHORT).show()
+                                    }
+                                }) {
+                                    Text("Assign to me")
                                 }
                             }
                         }

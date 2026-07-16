@@ -90,7 +90,7 @@ class CardDetailViewModel(application: Application) : AndroidViewModel(applicati
                 RetrofitInstance.api.moveCard(cardId, MoveCardRequest(newColumnId, 0))
                 load(boardId, cardId)
             } catch (e: Exception) {
-                // Silently ignore for now
+                // Ignore
             }
         }
     }
@@ -101,7 +101,7 @@ class CardDetailViewModel(application: Application) : AndroidViewModel(applicati
                 RetrofitInstance.api.addComment(cardId, CreateCommentRequest(content))
                 load(boardId, cardId)
             } catch (e: Exception) {
-                // Silently ignore for now
+                // Ignore
             }
         }
     }
@@ -112,7 +112,7 @@ class CardDetailViewModel(application: Application) : AndroidViewModel(applicati
                 RetrofitInstance.api.deleteComment(cardId, commentId)
                 load(boardId, cardId)
             } catch (e: Exception) {
-                // Silently ignore for now
+                // Ignore
             }
         }
     }
@@ -127,4 +127,38 @@ class CardDetailViewModel(application: Application) : AndroidViewModel(applicati
             }
         }
     }
+
+    fun assignToMe(onComplete: (Boolean, String?) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitInstance.api.assignToMe(cardId)
+                if (response.isSuccessful) {
+                    load(boardId, cardId)
+                    onComplete(true, null)
+                } else {
+                    val errorMsg = response.errorBody()?.string() ?: "Failed to assign card."
+                    onComplete(false, errorMsg)
+                }
+            } catch (e: Exception) {
+                onComplete(false, "Error: ${e.message}")
+            }
+        }
+    }
+
+    fun unassignMe(onComplete: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitInstance.api.unassignMe(cardId)
+                if (response.isSuccessful) {
+                    load(boardId, cardId)
+                    onComplete(true)
+                } else {
+                    onComplete(false)
+                }
+            } catch (e: Exception) {
+                onComplete(false)
+            }
+        }
+    }
+
 }

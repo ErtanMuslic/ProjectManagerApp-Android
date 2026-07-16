@@ -104,6 +104,12 @@ interface ApiService {
     @GET("api/cards/my-tasks")
     suspend fun getMyTasks(): Response<List<MyTaskResponse>>
 
+    @PUT("api/cards/{id}/assign-to-me")
+    suspend fun assignToMe(@Path("id") cardId: Int): Response<Map<String, Any>>
+
+    @PUT("api/cards/{id}/unassign")
+    suspend fun unassignMe(@Path("id") cardId: Int): Response<Map<String, Any>>
+
 
     //Columns
     @PUT("api/boards/columns/{columnId}")
@@ -118,4 +124,6 @@ interface ApiService {
         @Body request: ReorderColumnsRequest
     ): Response<Map<String, Any>>
 
+    @DELETE("api/boards/columns/{columnId}")
+    suspend fun deleteColumn(@Path("columnId") columnId: Int): Response<Map<String, Any>>
 }

@@ -2,32 +2,43 @@ package com.ertan.projecrmanagerapp.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
+// Dark theme background layers
+val DarkBackground = Color(0xFF121317)
+val DarkSurface = Color(0xFF1C1D23)
+val DarkSurfaceElevated = Color(0xFF25262E)
+val DarkBorder = Color(0xFF2E2F38)
 
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)
+// Primary accent (blue, matches reference design)
+val AccentBlue = Color(0xFF5B8DEF)
+val AccentBlueLight = Color(0xFF8CB0F5)
 
-// Primary brand colors
-val Primary = Color(0xFF3D5AFE)
-val PrimaryDark = Color(0xFF0031CA)
-val PrimaryLight = Color(0xFF8187FF)
+// Priority badge colors (background + text pairs, matching pill style)
+val PriorityHighBg = Color(0xFF3D1F24)
+val PriorityHighText = Color(0xFFF06A6A)
+val PriorityMediumBg = Color(0xFF3D2E1A)
+val PriorityMediumText = Color(0xFFE8A94D)
+val PriorityLowBg = Color(0xFF1C3327)
+val PriorityLowText = Color(0xFF5FBF8A)
 
-// Secondary accent
-val Secondary = Color(0xFF00BFA5)
+// Status colors
+val StatusTodoBg = Color(0xFF1A2A45)
+val StatusTodoText = Color(0xFF6FA0F0)
+val StatusDoneBg = Color(0xFF1C3327)
+val StatusDoneText = Color(0xFF5FBF8A)
 
-// Priority indicator colors (used in cards)
-val PriorityHigh = Color(0xFFE57373)
-val PriorityMedium = Color(0xFFFFB74D)
-val PriorityLow = Color(0xFF81C784)
+// Avatar background palette (cycled by user id for variety)
+val AvatarColors = listOf(
+    Color(0xFF5B8DEF), // blue
+    Color(0xFF4DB380), // green
+    Color(0xFF9B6FE0), // purple
+    Color(0xFFE0916F), // orange
+    Color(0xFFE05F87), // pink
+    Color(0xFF5FBFBF)  // teal
+)
 
-// Neutral background/surface
-val BackgroundLight = Color(0xFFF7F8FC)
-val SurfaceLight = Color(0xFFFFFFFF)
-val BackgroundDark = Color(0xFF121318)
-val SurfaceDark = Color(0xFF1E1F26)
+// Text colors
+val TextPrimary = Color(0xFFF2F3F5)
+val TextSecondary = Color(0xFF9CA0AA)
+val TextMuted = Color(0xFF6B6E78)
 
-// Error
-val ErrorColor = Color(0xFFBA1A1A)
+val ErrorColor = Color(0xFFE05F5F)

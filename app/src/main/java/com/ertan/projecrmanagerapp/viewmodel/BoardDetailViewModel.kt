@@ -64,7 +64,7 @@ class BoardDetailViewModel(application: Application) : AndroidViewModel(applicat
             try {
                 val response = RetrofitInstance.api.createColumn(
                     currentBoardId,
-                    CreateColumnRequest(name, order, parentColumnId, cardLimit)
+                    CreateColumnRequest(name = name, order = order, parentColumnId = parentColumnId, cardLimit = cardLimit)
                 )
                 if (response.isSuccessful) {
                     loadBoard(currentBoardId)
@@ -78,15 +78,31 @@ class BoardDetailViewModel(application: Application) : AndroidViewModel(applicat
         }
     }
 
-    fun updateColumnLimit(columnId: Int, newLimit: Int?, onComplete: (Boolean) -> Unit) {
+    fun updateColumn(columnId: Int, name: String, newLimit: Int?, onComplete: (Boolean) -> Unit) {
         viewModelScope.launch {
             try {
                 val request = if (newLimit == null) {
-                    UpdateColumnRequest(clearCardLimit = true)
+                    UpdateColumnRequest(name = name, clearCardLimit = true)
                 } else {
-                    UpdateColumnRequest(cardLimit = newLimit)
+                    UpdateColumnRequest(name = name, cardLimit = newLimit)
                 }
                 val response = RetrofitInstance.api.updateColumn(columnId, request)
+                if (response.isSuccessful) {
+                    loadBoard(currentBoardId)
+                    onComplete(true)
+                } else {
+                    onComplete(false)
+                }
+            } catch (e: Exception) {
+                onComplete(false)
+            }
+        }
+    }
+
+    fun deleteColumn(columnId: Int, onComplete: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitInstance.api.deleteColumn(columnId)
                 if (response.isSuccessful) {
                     loadBoard(currentBoardId)
                     onComplete(true)
@@ -124,7 +140,7 @@ class BoardDetailViewModel(application: Application) : AndroidViewModel(applicat
                 RetrofitInstance.api.moveCard(cardId, MoveCardRequest(newColumnId, newOrder))
                 loadBoard(currentBoardId)
             } catch (e: Exception) {
-                // Silently fail for now; could show a snackbar later
+                // Ignore
             }
         }
     }
